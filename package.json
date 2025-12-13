@@ -1,0 +1,19 @@
+{
+  "name": "erp-lite-peru",
+  "version": "1.0.0",
+  "description": "ERP System for Peruvian SMEs",
+  "main": "index.js",
+  "scripts": {
+    "dev": "concurrently \"npm run dev:frontend\" \"npm run dev:backend\"",
+    "dev:frontend": "cd frontend && npm run dev",
+    "dev:backend": "cd backend && npm run dev",
+    "build": "cd frontend && npm run build",
+    "start": "cd backend && npm start"
+  },
+  "keywords": ["erp", "peru", "pyme", "business"],
+  "author": "ERP-Lite Development Team",
+  "license": "MIT",
+  "devDependencies": {
+    "concurrently": "^8.2.2"
+  }
+}
