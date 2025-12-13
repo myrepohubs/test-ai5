@@ -1,7 +1,7 @@
 'use client';
 
 import { useRouter } from 'next/navigation';
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 
 interface LayoutProps {
   children: React.ReactNode;
@@ -9,13 +9,29 @@ interface LayoutProps {
 
 export default function Layout({ children }: LayoutProps) {
   const router = useRouter();
-  const [user, setUser] = useState(() => {
-    if (typeof window !== 'undefined') {
-      const userData = localStorage.getItem('user');
-      return userData ? JSON.parse(userData) : null;
-    }
-    return null;
-  });
+  const [user, setUser] = useState<any>(null);
+  const [isLoading, setIsLoading] = useState(true);
+
+  useEffect(() => {
+    // Verificar autenticación solo en el cliente
+    const checkAuth = () => {
+      try {
+        const userData = localStorage.getItem('user');
+        if (userData) {
+          setUser(JSON.parse(userData));
+        } else {
+          router.push('/login');
+        }
+      } catch (error) {
+        console.error('Error checking auth:', error);
+        router.push('/login');
+      } finally {
+        setIsLoading(false);
+      }
+    };
+
+    checkAuth();
+  }, [router]);
 
   const handleLogout = () => {
     localStorage.removeItem('user');
@@ -23,7 +39,8 @@ export default function Layout({ children }: LayoutProps) {
     router.push('/login');
   };
 
-  if (!user) {
+  // Mostrar loading mientras se verifica la autenticación
+  if (isLoading || !user) {
     return (
       <div className="min-h-screen flex items-center justify-center bg-gray-50">
         <div className="text-center">
@@ -48,9 +65,9 @@ export default function Layout({ children }: LayoutProps) {
             
             <div className="flex items-center space-x-4">
               <div className="text-sm text-gray-700">
-                <span className="font-medium">{user.full_name}</span>
+                <span className="font-medium">{user?.full_name || 'Usuario'}</span>
                 <span className="ml-2 px-2 py-1 text-xs font-medium bg-blue-100 text-blue-800 rounded-full">
-                  {user.role}
+                  {user?.role || 'usuario'}
                 </span>
               </div>
               <button
