@@ -18,19 +18,29 @@ export default function Layout({ children }: LayoutProps) {
       try {
         const userData = localStorage.getItem('user');
         if (userData) {
-          setUser(JSON.parse(userData));
+          const parsedUser = JSON.parse(userData);
+          setUser(parsedUser);
         } else {
-          router.push('/login');
+          // Solo redirigir si no hay datos de usuario y no estamos ya en login
+          if (!window.location.pathname.includes('/login')) {
+            router.push('/login');
+          }
         }
       } catch (error) {
         console.error('Error checking auth:', error);
-        router.push('/login');
+        // Limpiar localStorage corrupto
+        localStorage.removeItem('user');
+        if (!window.location.pathname.includes('/login')) {
+          router.push('/login');
+        }
       } finally {
         setIsLoading(false);
       }
     };
 
-    checkAuth();
+    // Delay para evitar problemas de hidratación
+    const timer = setTimeout(checkAuth, 100);
+    return () => clearTimeout(timer);
   }, [router]);
 
   const handleLogout = () => {
@@ -39,13 +49,30 @@ export default function Layout({ children }: LayoutProps) {
     router.push('/login');
   };
 
-  // Mostrar loading mientras se verifica la autenticación
-  if (isLoading || !user) {
+  const handleNavigation = (href: string) => {
+    // Navegación programática para evitar recargas de página
+    router.push(href);
+  };
+
+  // Mostrar loading solo al inicio
+  if (isLoading) {
     return (
       <div className="min-h-screen flex items-center justify-center bg-gray-50">
         <div className="text-center">
           <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mx-auto"></div>
-          <p className="mt-4 text-gray-600">Verificando autenticación...</p>
+          <p className="mt-4 text-gray-600">Cargando...</p>
+        </div>
+      </div>
+    );
+  }
+
+  // Si no hay usuario, mostrar página de carga en lugar de redirigir inmediatamente
+  if (!user) {
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-gray-50">
+        <div className="text-center">
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mx-auto"></div>
+          <p className="mt-4 text-gray-600">Verificando sesión...</p>
         </div>
       </div>
     );
@@ -85,42 +112,42 @@ export default function Layout({ children }: LayoutProps) {
       <nav className="bg-blue-600 text-white">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex space-x-8">
-            <a
-              href="/dashboard"
+            <button
+              onClick={() => handleNavigation('/dashboard')}
               className="px-3 py-4 text-sm font-medium hover:bg-blue-700 transition-colors"
             >
               Dashboard
-            </a>
-            <a
-              href="/inventory"
+            </button>
+            <button
+              onClick={() => handleNavigation('/inventory')}
               className="px-3 py-4 text-sm font-medium hover:bg-blue-700 transition-colors"
             >
               Inventario
-            </a>
-            <a
-              href="/sales"
+            </button>
+            <button
+              onClick={() => handleNavigation('/sales')}
               className="px-3 py-4 text-sm font-medium hover:bg-blue-700 transition-colors"
             >
               Ventas
-            </a>
-            <a
-              href="/purchases"
+            </button>
+            <button
+              onClick={() => handleNavigation('/purchases')}
               className="px-3 py-4 text-sm font-medium hover:bg-blue-700 transition-colors"
             >
               Compras
-            </a>
-            <a
-              href="/accounting"
+            </button>
+            <button
+              onClick={() => handleNavigation('/accounting')}
               className="px-3 py-4 text-sm font-medium hover:bg-blue-700 transition-colors"
             >
               Contabilidad
-            </a>
-            <a
-              href="/reports"
+            </button>
+            <button
+              onClick={() => handleNavigation('/reports')}
               className="px-3 py-4 text-sm font-medium hover:bg-blue-700 transition-colors"
             >
               Reportes
-            </a>
+            </button>
           </div>
         </div>
       </nav>
